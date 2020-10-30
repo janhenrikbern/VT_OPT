@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import image
-from numpy.linalg.linalg import norm
 
 IMG_PATH = "./tracks/track.png"
 
