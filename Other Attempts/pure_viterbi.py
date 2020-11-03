@@ -27,13 +27,13 @@ def viterbi(A, C, B, O):
     # Initialize D and E matrices
     D = np.zeros((I, N))
     E = np.zeros((I, N-1)).astype(np.int32)
-    D[:, 0] = np.multiply(C, B[:, 0])
+    D[:, 0] = np.add(C, B[:, 0])
 
     # Compute D and E in a nested loop
     for n in range(1, N):
         for i in range(I):
-            temp_product = np.multiply(A[:, i], D[:, n-1])
-            D[i, n] = np.max(temp_product) * B[i, O[n]]
+            temp_product = np.add(A[:, i], D[:, n-1])
+            D[i, n] = np.max(temp_product) + B[i, O[n]]
             E[i, n-1] = np.argmax(temp_product)
 
     # Backtracking
