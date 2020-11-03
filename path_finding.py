@@ -53,10 +53,6 @@ def find_valid_trajectory(car, track):
     width = 10
 
     contours = get_inner_contours(track)
-    plt.imshow(track)
-    for index, item in enumerate(contours):
-        plt.scatter(item[0], item[1])
-    # plt.show()
 
     # horizontal to the left is the original angle
     (x, y), index = find_closest_point(car.location, contours)
@@ -92,11 +88,14 @@ def find_valid_trajectory(car, track):
                 states.append([available_points[index][0] + vertical_v[0]*i, available_points[index][1] + vertical_v[1]*i])
             states_list.append(np.array(states))
 
-    # plt.close()
-    for states in states_list:
-        for state in states:
-            plt.scatter(state[0], state[1])
-    plt.show()
+    # plt.imshow(track)
+    # # for index, item in enumerate(contours):
+    # #     plt.scatter(item[0], item[1])
+    # for states in states_list:
+    #     for state in states:
+    #         plt.scatter(state[0], state[1])
+    #         plt.pause(0.05)
+    # plt.show()
     return states_list
 
 
@@ -104,20 +103,12 @@ def find_valid_trajectory(car, track):
 
 if __name__ == "__main__":
     IMG_PATH = "./tracks/loop.png"
+    # IMG_PATH = "./tracks/line.png"
     track = load_track(IMG_PATH)
 
     # Set to a valid point in trajectory
     car = PointCar(150, 200)
     fig = plt.figure()
 
-    for i in range(1):
-        print(f"Step {i + 1}")
-        valid_traj = find_valid_trajectory(car, track)
-        car.update(5.0, 0)
-        car.step()
-        # print(car)
-
-        # if i % 100 == 0:
-        #     plt.imshow(track)
-        #     car.plot_state()
-        #     plt.show()
+    valid_traj = find_valid_trajectory(car, track)
+    print(np.array(valid_traj).shape)
