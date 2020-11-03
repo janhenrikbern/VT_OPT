@@ -15,6 +15,9 @@ def transform_to_track(img):
 	normalized = matrix / np.linalg.norm(matrix)
 	return (normalized / np.max(normalized)) < 0.5
 
+def is_valid_location(track, location):
+    return track[round(location[0]), round(location[1])]
+
 if __name__ == "__main__":
     track = load_track(IMG_PATH)
     plt.imshow(track)

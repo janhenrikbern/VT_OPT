@@ -49,5 +49,5 @@ class PointCar:
         plt.arrow(x, y, 5*dx, 5*dy, width=1.0)
     
     def __str__(self):
-        return f"PointCar - Location (x,y): {self.location}, acceleration: {self.a}"
+        return f"PointCar - Location (x,y): {self.location}, \n acceleration: {self.a}, \n velocity: {self.v}"
 
