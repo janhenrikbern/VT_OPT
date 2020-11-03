@@ -30,6 +30,18 @@ def dynamics(cur_coor, nxt_coor, curr_vel, dt=0.1):
     return dx, v2
 
 def additive_viterbi(trellis):
+    """
+    Implementation inspired by: 
+
+    Mazurek, P. (2014). Line estimation using the Viterbi algorithm and 
+    track-before-detect approach for line following mobile robots. 
+    In 2014 19th International Conference on Methods and Models 
+    in Automation and Robotics (MMAR) (pp. 788–793). 
+    IEEE. https://doi.org/10.1109/MMAR.2014.6957456
+
+    Arguments:
+        trellis: n x m x 2 np.array where n is the number of points along  
+    """
 
     # forward pass
     nodes = []
