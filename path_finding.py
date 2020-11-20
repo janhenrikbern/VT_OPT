@@ -3,7 +3,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from track import load_track
-from car import PointCar
+from vehicles import PointCar
 
 
 def equal_separate_contours(contours):

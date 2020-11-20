@@ -1,7 +1,7 @@
 from math import sqrt, log
 import matplotlib.pyplot as plt
 from track import load_track
-from car import PointCar
+from vehicles import PointCar
 from path_finding import find_valid_trajectory
 
 
@@ -18,12 +18,18 @@ class Node:
     def __str__(self) -> str:
         return f"Node value {self.val} with step cnt {self.steps}"
 
+
 def dynamics(cur_coor, nxt_coor, curr_vel, dt=0.1):
     x1, y1 = cur_coor
     x2, y2 = nxt_coor
 
     dx = sqrt( (x1 - x2)**2 + (y1 - y2)**2 )
     v2 = dx / dt
+
+    # TODO: Add distance punishment if distance between nodes is too large 
+    # (jumps more than 1 neighboring node or more then some threshold distance)
+
+
     # currently unused because distance is the better estimator
     # v1 = curr_vel
     # a = abs(v2 - v1) / dt
@@ -95,7 +101,6 @@ def additive_viterbi(trellis):
 
 if __name__ == "__main__":
     IMG_PATH = "./tracks/loop.png"
-    # IMG_PATH = "./tracks/line.png"
     track = load_track(IMG_PATH)
 
     # Set to a valid point in trajectory

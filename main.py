@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from track import load_track, is_valid_location
-from car import PointCar
+from vehicles import PointCar
 import random
 import pure_viterbi
 
