@@ -22,8 +22,8 @@ class PointCar:
         """
         # control inputs
         self.a = 0.0
-        self.dx = 0.00000001
-        self.dy = 0.00000001
+        self.dx = -0.00000001
+        self.dy = -0.00000001
         self.steering_angle = 0.0 
 
         self.location = list(starting_coordinates)
