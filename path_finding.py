@@ -85,7 +85,8 @@ def find_valid_trajectory(car, track):
         else:
             available_points = available_points_temp
         visible = visible - len(contours)
-
+        
+    available_points = available_points[::-1]
     states_list = []
     for index, ap in enumerate(available_points):
         states = []
