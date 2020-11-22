@@ -56,8 +56,9 @@ def find_valid_trajectory(car, track):
 
     # horizontal to the left is the original angle
     (x, y), index = find_closest_point(car.location, contours)
-    direction = find_direction(car, index, contours)
+    direction = find_direction(car, index, contours) 
     
+    # direction to the whole track
     if direction > 0:
         if index + visible*direction > len(contours):
             available_points = np.concatenate((contours[index:len(contours)-1],contours[0:index + visible * direction - len(contours)-1]), axis=0)
