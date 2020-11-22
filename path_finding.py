@@ -58,36 +58,62 @@ def find_valid_trajectory(car, track):
     (x, y), index = find_closest_point(car.location, contours)
     direction = find_direction(car, index, contours) 
     
-    # direction to the whole track
-    if direction > 0:
-        if index + visible*direction > len(contours):
-            available_points = np.concatenate((contours[index:len(contours)-1],contours[0:index + visible * direction - len(contours)-1]), axis=0)
-        else:
-            available_points = contours[index:index + visible*direction]
-    else:
+    if visible <= 0:
+        print("invalid visible number")
+        exit()
 
-        if index < -visible*direction:
-            available_points = np.concatenate((contours[index + visible * direction:], contours[0:index]), axis=0)
+    available_points = np.array([])
+    while visible > 0:
+        if visible > len(contours):
+            single_visible = len(contours)
         else:
-            available_points = contours[index + visible*direction: index]
+            single_visible = visible
+        # direction to the whole track
+        if direction > 0:
+            if index + single_visible*direction > len(contours):
+                available_points_temp = np.concatenate((contours[index:len(contours)],contours[0:index + single_visible * direction - len(contours)]), axis=0)
+            else:
+                available_points_temp = contours[index:index + single_visible*direction]
+        else:
+            if index + single_visible*direction < 0:
+                available_points_temp = np.concatenate((contours[index + single_visible * direction:], contours[0:index]), axis=0)
+            else:
+                available_points_temp = contours[index + single_visible*direction: index]
+            available_points_temp = available_points_temp[::-1]
+        if len(available_points) > 0:
+            available_points = np.concatenate((available_points, available_points_temp), axis=0)
+        else:
+            available_points = available_points_temp
+        visible = visible - len(contours)
 
     states_list = []
-    available_points = available_points[::-1]
     for index, ap in enumerate(available_points):
         states = []
-        if not index == 0 and not index == visible-1:
+        if not index == 0 and not index == len(available_points)-1:
+            # horizontal to the speed
             horiz_v = np.array([available_points[index-1][0]-available_points[index+1][0], available_points[index-1][1]-available_points[index+1][1]])
             vertical_v = np.array([horiz_v[1], -horiz_v[0]])
+
+            # there are two direction of the vertical of speed. select the one point to outer contour
             if len(states_list) == 0:
                 point_to_p = np.array([car.location[0] - available_points[index][0], car.location[1] - available_points[index][1]])
             else:
                 point_to_p = np.array([states_list[-1][-1][0] - available_points[index][0], states_list[-1][-1][1] - available_points[index][1]])
             if np.dot(vertical_v, point_to_p) < 0:
                 vertical_v = vertical_v * -1
+
+            # moudle is to find points along the vertical vector
             module = np.sqrt(np.sum(np.square(vertical_v[0]) + np.square(vertical_v[1])))
             vertical_v = vertical_v / module
-            for i in range(1, width + 1):
-                states.append([available_points[index][0] + vertical_v[0]*i, available_points[index][1] + vertical_v[1]*i])
+
+            # get outer contour
+            times = 1
+            while track[int(available_points[index][1] + vertical_v[1]*times), int(available_points[index][0] + vertical_v[0]*times)]:
+                times = times + 1
+            vertical_v = vertical_v * (times+1)
+            # to remove the head and tail
+            for i in range(1, width+1):
+                states.append([available_points[index][0] + vertical_v[0]*i/(width+1), available_points[index][1] + vertical_v[1]*i/(width+1)])
             states_list.append(np.array(states))
 
     # plt.imshow(track)
