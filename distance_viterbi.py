@@ -14,9 +14,11 @@ class Node:
         self.y = None
         self.vel = 0
         self.steps = 0
+        self.summed_metric = 0.0
+        self.heading = [0., 0.]
 
     def __str__(self) -> str:
-        return f"Node value {self.val} with step cnt {self.steps}"
+        return f"Node value {self.val} with step cnt {self.steps} and metric value {self.summed_metric}"
 
 
 def dynamics(cur_coor, nxt_coor, curr_vel, dt=0.1):
@@ -34,6 +36,11 @@ def dynamics(cur_coor, nxt_coor, curr_vel, dt=0.1):
     # v1 = curr_vel
     # a = abs(v2 - v1) / dt
     return dx, v2
+
+def distance_score(node, x, y, nxt_state):
+    dx, cur_vel = dynamics((node.x, node.y), (x, y), node.vel)
+    score = node.val + 1 / (dx + 1)
+    return score, dx, cur_vel
 
 def additive_viterbi(trellis):
     """
@@ -64,16 +71,20 @@ def additive_viterbi(trellis):
                 continue
             
             x, y = state
+            # Wrap this into scoring function
             max_node = None
             max_val = -1
             best_v = None
+            best_dm = None
             for prev in nodes:
-                dx, v = dynamics((prev.x, prev.y), (x, y), prev.vel)
-                val = prev.val + 1 / (dx + 1)
-                if val > max_val:
-                    max_node = prev
-                    max_val = val
-                    best_v = v
+                # if prev.state == 3: # Centerline trajectory for trellis of width 5
+                if abs(prev.state - j) <= 1:
+                    val, dm, v = distance_score(prev, x, y, j)
+                    if val > max_val:
+                        max_node = prev
+                        max_val = val
+                        best_v = v
+                        best_dm = dm
 
             cur = Node()
             cur.val = max_val
@@ -82,6 +93,8 @@ def additive_viterbi(trellis):
             cur.y = state[1]
             cur.state = j+1
             cur.prev = max_node
+            cur.summed_metric = max_node.summed_metric + best_dm
+            ###### End scoring function
             tmp[j] = cur
         nodes, tmp = tmp, nodes
     
@@ -90,6 +103,7 @@ def additive_viterbi(trellis):
     
     # backward pass
     best_node = max(nodes, key=lambda n: n.val)
+    print(best_node)
     
     path = []
     cur = best_node
@@ -112,7 +126,8 @@ if __name__ == "__main__":
     fig = plt.figure()
     for x, y in best_path:
         plt.imshow(track)
-        plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
+        plt.title("Baseline: Centerline Trajectory")
+        # plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
         plt.xlabel("Unit distance")
         plt.ylabel("Unit distance")
         plt.scatter(x, y)
