@@ -83,7 +83,6 @@ def find_valid_trajectory(car, track, visible, width):
             available_points = available_points_temp
         visible = visible - len(contours)
         
-    available_points = available_points[::-1]
     states_list = []
     for index, ap in enumerate(available_points):
         states = []
@@ -122,9 +121,7 @@ def find_valid_trajectory(car, track, visible, width):
     #         plt.scatter(state[0], state[1])
     #         plt.pause(0.05)
     # plt.show()
-    return states_list
-
-
+    return states_list[::-1]
 
 
 if __name__ == "__main__":
