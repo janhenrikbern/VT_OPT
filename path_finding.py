@@ -48,10 +48,7 @@ def find_direction(car, index, contours):
         return -1
 
 
-def find_valid_trajectory(car, track):
-    visible = 199
-    width = 10
-
+def find_valid_trajectory(car, track, visible, width):
     contours = get_inner_contours(track)
 
     # horizontal to the left is the original angle
