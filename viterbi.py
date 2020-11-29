@@ -8,9 +8,11 @@ from scoring_functions import (
     time_score,
     distance_score
 )
+# SCORING_FN = distance_score
+SCORING_FN = time_score
 
 
-def score(nodes, state, scoring_fn=distance_score):
+def score(nodes, state, scoring_fn=SCORING_FN):
     x, y = state
     best_node = None
     max_val = -1
@@ -20,11 +22,27 @@ def score(nodes, state, scoring_fn=distance_score):
                 continue
             elif val > max_val:
                 best_node = prev
-
+                max_val = val
+    if max_val < 0:
+        print("Couldn't find a valid node to proceed to.")
+        exit()
     # set best node
-    cur = Node().inherit(best_node)
+    cur = Node()
+    cur.inherit(best_node)
     cur.update(state, max_val)
     return cur
+
+def init_node(state_idx, c0, c1):
+    n = Node()
+    n.state_idx = state_idx
+    n.x, n.y = c0
+    x, y = c1
+    dx = x - n.x
+    dy = y - n.y
+    n.vehicle = PointCar(n.x, n.y)
+    n.vehicle.delta = acos(dx / sqrt(dy**2 + dx**2))
+    return n
+
 
 
 def additive_viterbi(trellis):
@@ -47,14 +65,7 @@ def additive_viterbi(trellis):
     for i, col in enumerate(trellis):
         for j, state in enumerate(col):
             if i == 0:
-                n = Node()
-                n.x = state[0]
-                n.y = state[1]
-                n.vehicle = PointCar(n.x, n.y)
-                x, y = trellis[i+1][j]
-                dx = x - n.x
-                dy = y - n.y
-                n.vehicle.delta = acos(dx / sqrt(dy**2 + dx**2))
+                n = init_node(j, state, trellis[i+1][j])
                 nodes.append(n)
                 tmp.append(n)
                 continue
@@ -67,14 +78,17 @@ def additive_viterbi(trellis):
     #     print(n)
     
     # backward pass
-    best_node = max(nodes, key=lambda n: n.val)
+    best_node = min(nodes, key=lambda n: n.val)
     print(best_node)
     
     path = []
     cur = best_node
+    n_nodes = 0 
     while cur is not None:
         path.append((cur.x, cur.y))
         cur = cur.prev
+        n_nodes +=1 
+    print(f"Number of nodes in path: {n_nodes}")
     
     return path
 
@@ -92,8 +106,8 @@ if __name__ == "__main__":
     fig = plt.figure()
     for x, y in best_path:
         plt.imshow(track)
-        plt.title("Baseline: Centerline Trajectory")
-        # plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
+        # plt.title("Baseline: Centerline Trajectory")
+        plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
         plt.xlabel("Unit distance")
         plt.ylabel("Unit distance")
         plt.scatter(x, y)
