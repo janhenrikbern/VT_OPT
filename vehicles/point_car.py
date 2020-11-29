@@ -92,11 +92,11 @@ class PointCar:
         dx, dy = self.get_distance_components(target_coor)
         dist = hypotenuse(dx, dy)
         # steering negatively affects the speed. Need to slow down to turn.
-        steering_correction = 1.0 - (d_theta / (self.max_turning_rate * dist))
-        v_gain = self.v + (dist / max(self.v, self.max_a)) * self.max_a
+        steering_correction = 1.0 - sqrt(d_theta / (self.max_turning_rate * dist))
+        v_gain = self.v + (dist / max(self.v, self.max_a)) * self.max_a * steering_correction
         v_adj = steering_correction * (self.v + min(v_gain, self.max_v)) / 2.0
         
-        print(f"speed: {v_adj}")
+        print(f"speed: {v_adj - self.v}")
         return dist / v_adj
 
     def get_location_and_heading(self):
