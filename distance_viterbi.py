@@ -120,9 +120,7 @@ if __name__ == "__main__":
     # Set to a valid point in trajectory
     car = PointCar(150, 200)
     
-    visible = 199
-    width = 1
-    trellis = find_valid_trajectory(car, track, visible, width)
+    trellis = find_valid_trajectory(car, track)
     best_path = additive_viterbi(trellis)
 
     fig = plt.figure()
