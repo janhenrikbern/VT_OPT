@@ -7,7 +7,7 @@ from vehicles import PointCar
 
 # Set trellis graph
 N_STATES = 10
-N_NODES = 199
+N_NODES = 200
 
 
 def equal_separate_contours(contours):
