@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from track import load_track
 from vehicles import PointCar
 
+# Set trellis graph
+N_STATES = 10
+N_NODES = 199
+
 
 def equal_separate_contours(contours):
     contours = np.squeeze(contours[1])
@@ -48,7 +52,10 @@ def find_direction(car, index, contours):
         return -1
 
 
-def find_valid_trajectory(car, track, visible, width):
+def find_valid_trajectory(car, track):
+    visible = N_NODES
+    width = N_STATES
+
     contours = get_inner_contours(track)
 
     # horizontal to the left is the original angle
