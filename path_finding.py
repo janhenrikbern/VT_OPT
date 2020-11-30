@@ -8,11 +8,12 @@ from vehicles import PointCar
 # Set default trellis graph
 N_STATES = 10
 N_NODES = 200
+SAMPLE_SPLIT = 5
 
 
 def equal_separate_contours(contours):
     contours = np.squeeze(contours[1])
-    return contours[::5]
+    return contours[::SAMPLE_SPLIT]
 
 
 # we can put this in a class
