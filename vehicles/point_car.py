@@ -39,7 +39,7 @@ class PointCar:
         # vehicle constraints
         self.max_v = 28.0 # m/s
         self.max_a = 7.0 # m/s^2
-        self.max_turning_rate = radians(15.0) # rad / m based on a turning radius of ~13 m
+        self.max_turning_rate = radians(15.0) # rad / m based on a turning radius of 12 m
 
         # Info metrics:
         self.travel_dist = 0.0

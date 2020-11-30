@@ -15,17 +15,15 @@ from scoring_functions import (
 def score(scoring_fn, nodes, state):
     x, y = state
     best_node = None
-    max_val = -1
+    max_val = np.infty
     for prev in nodes:
             val = scoring_fn(prev, x, y)
             if val == None:
                 continue
-            elif val > max_val:
+            elif val < max_val:
                 best_node = prev
                 max_val = val
-    if max_val < 0:
-        print("Couldn't find a valid node to proceed to.")
-        exit()
+
     # set best node
     cur = Node()
     cur.inherit(best_node)
@@ -79,7 +77,7 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
     
     # backward pass
     best_node = min(nodes, key=lambda n: n.val)
-    print(best_node)
+    # print(list(map(lambda n: n.val, nodes)))
     
     path = []
     cur = best_node
@@ -88,7 +86,7 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
         path.append(cur.vehicle.location)
         cur = cur.prev
         n_nodes += 1 
-    print(f"Results of {scoring_fn.__name__} optimization: {best_node}")
+    print(f"Results of {scoring_fn.__name__} optimization: {best_node}\n")
     
     return get_full_path(*reversed(path))
 
