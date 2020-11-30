@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from track import load_track
 from vehicles import PointCar
 
-# Set trellis graph
+# Set default trellis graph
 N_STATES = 10
 N_NODES = 200
 
@@ -52,9 +52,9 @@ def find_direction(car, index, contours):
         return -1
 
 
-def find_valid_trajectory(car, track):
-    visible = N_NODES
-    width = N_STATES
+def find_valid_trajectory(car, track, nodes=N_NODES, states=N_STATES):
+    visible = nodes
+    width = states
 
     contours = get_inner_contours(track)
 
@@ -140,5 +140,5 @@ if __name__ == "__main__":
     car = PointCar(150, 200)
     fig = plt.figure()
 
-    valid_traj = find_valid_trajectory(car, track)
+    valid_traj = find_valid_trajectory(car, track, 200, 10)
     print(np.array(valid_traj).shape)

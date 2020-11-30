@@ -1,4 +1,5 @@
 from math import sqrt, log, acos
+import numpy as np
 import matplotlib.pyplot as plt
 from track import load_track
 from vehicles import PointCar
@@ -12,7 +13,7 @@ from scoring_functions import (
 SCORING_FN = time_score
 
 
-def score(nodes, state, scoring_fn=SCORING_FN):
+def score(scoring_fn, nodes, state):
     x, y = state
     best_node = None
     max_val = -1
@@ -45,7 +46,7 @@ def init_node(state_idx, c0, c1):
 
 
 
-def additive_viterbi(trellis):
+def additive_viterbi(trellis, scoring_fn=SCORING_FN):
     """
     Implementation inspired by: 
 
@@ -70,7 +71,7 @@ def additive_viterbi(trellis):
                 tmp.append(n)
                 continue
     
-            tmp[j] = score(nodes, state)
+            tmp[j] = score(scoring_fn, nodes, state)
 
         nodes, tmp = tmp, nodes
     
@@ -90,7 +91,7 @@ def additive_viterbi(trellis):
         n_nodes +=1 
     print(f"Number of nodes in path: {n_nodes}")
     
-    return path
+    return np.array(path).reshape(-1, 2)
 
 
 if __name__ == "__main__":
@@ -100,18 +101,31 @@ if __name__ == "__main__":
     # Set to a valid point in trajectory
     car = PointCar(150, 200)
 
-    trellis = find_valid_trajectory(car, track)
-    best_path = additive_viterbi(trellis)
+    baseline_trellis = find_valid_trajectory(car, track, states=1)
+    baseline = additive_viterbi(baseline_trellis, distance_score)
 
-    fig = plt.figure()
-    for x, y in best_path:
-        plt.imshow(track)
-        # plt.title("Baseline: Centerline Trajectory")
-        plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
-        plt.xlabel("Unit distance")
-        plt.ylabel("Unit distance")
-        plt.scatter(x, y)
-        plt.pause(0.1)
-        fig.clear()
-    plt.pause(1.0)
-    plt.close()
+    trellis = find_valid_trajectory(car, track)
+    time = additive_viterbi(trellis, time_score)
+    distance = additive_viterbi(trellis, distance_score)
+
+    fig, ax = plt.subplots()
+    ax.imshow(track)
+    ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
+    ax.fill(time[:,0], time[:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
+    ax.fill(distance[:,0], distance[:,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
+    # plt.legend()
+    plt.show()
+
+    ## Trajectory Video plot
+    # fig = plt.figure()
+    # for x, y in best_path:
+    #     plt.imshow(track)
+    #     # plt.title("Baseline: Centerline Trajectory")
+    #     plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
+    #     plt.xlabel("Unit distance")
+    #     plt.ylabel("Unit distance")
+    #     plt.scatter(x, y)
+    #     plt.pause(0.1)
+    #     fig.clear()
+    # plt.pause(1.0)
+    # plt.close()
