@@ -53,8 +53,8 @@ def find_direction(car, index, contours):
         return -1
 
 
-def find_valid_trajectory(car, track, nodes=N_NODES, states=N_STATES):
-    visible = nodes
+def find_valid_trajectory(car, track, nodes=N_NODES, states=N_STATES, loops=1):
+    visible = loops * nodes
     width = states
 
     contours = get_inner_contours(track)
