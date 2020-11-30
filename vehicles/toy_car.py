@@ -26,13 +26,13 @@ class ToyCar:
         """
         # control inputs
         self.a = 0.0 # acceleration
-        self.delta = 0.0 # steering angle
+        self.theta = 0.0 # steering angle
 
         # car properties
         self.car_length = 2.0
         self.max_a = 7.0 # max. acceleration (0-100 in ~4 sec)
         self.max_v = 28.0 # max. speed of ~100 km / h
-        self.max_delta = radians(30.0) # max. turn in front wheels
+        self.max_theta = radians(30.0) # max. turn in front wheels
         self.com_offset = 0.0 # center of mass offset of the car
 
         # car state variables
@@ -53,7 +53,7 @@ class ToyCar:
         dx = x1 - x0
         dy = y1 - y0
         b = self.beta
-        d = self.delta
+        d = self.theta
         
 
     def step(self):
