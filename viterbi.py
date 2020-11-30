@@ -12,25 +12,33 @@ from scoring_functions import (
 )
 
 
-def score(scoring_fn, nodes, state):
-    x, y = state
-    best_node = None
-    max_val = -1
+def score(scoring_fn, nodes, states):
+    out = []
     for prev in nodes:
+        best_state = None
+        max_val = -1
+        for state in states:
+            x, y = state
             val = scoring_fn(prev, x, y)
             if val == None:
                 continue
             elif val > max_val:
-                best_node = prev
+                best_state = state
                 max_val = val
-    if max_val < 0:
+        if max_val < 0:
+            continue
+        
+        # set best node
+        cur = Node()
+        cur.inherit(prev)
+        cur.update(best_state, max_val)
+        out.append(cur)
+    
+    if len(out) == 0:
         print("Couldn't find a valid node to proceed to.")
         exit()
-    # set best node
-    cur = Node()
-    cur.inherit(best_node)
-    cur.update(state, max_val)
-    return cur
+
+    return out
 
 def init_node(state_idx, starting_position, state):
     n = Node()
@@ -61,24 +69,20 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
 
     # forward pass
     nodes = []
-    tmp = []
     for i, col in enumerate(trellis):
-        for j, state in enumerate(col):
-            if i == 0:
+        if i == 0:
+            for j, state in enumerate(col):
                 n = init_node(j, starting_position, state)
                 nodes.append(n)
-                tmp.append(n)
-                continue
+            continue
     
-            tmp[j] = score(scoring_fn, nodes, state)
-
-        nodes, tmp = tmp, nodes
+        nodes = score(scoring_fn, nodes, col)
     
     # for n in nodes:
     #     print(n)
     
     # backward pass
-    best_node = min(nodes, key=lambda n: n.val)
+    best_node = max(nodes, key=lambda n: n.val)
     print(best_node)
     
     path = []

@@ -22,7 +22,7 @@ class Node:
     def update(self, state, score) -> None:
         self.steps += 1
         self.x, self.y = state
-        self.val = score
+        self.val += score
         self.vehicle.update(self)
         self.vel = self.vehicle.v
 

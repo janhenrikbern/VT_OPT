@@ -34,8 +34,8 @@ if __name__ == "__main__":
     car = PointCar(*starting_position)
     baseline_trellis = path_finding.find_valid_trajectory(car, track, states=1)
     baseline = viterbi.additive_viterbi(baseline_trellis, starting_position, centerline_score)
-    n_loops = 2
-    trellis = path_finding.find_valid_trajectory(car, track, loops=n_loops, states=20)
+    n_loops = 1
+    trellis = path_finding.find_valid_trajectory(car, track, loops=n_loops, states=10)
     split_idx = (len(trellis) // n_loops) + 1 if n_loops > 1 else 0
     time = viterbi.additive_viterbi(trellis, starting_position, time_score)
     distance = viterbi.additive_viterbi(trellis, starting_position, distance_score)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         plt.xlabel("Meters")
         plt.ylabel("Meters")
         ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
-        ax.fill(time[split_idx:,0], time[split_idx:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
-        ax.fill(distance[:split_idx,0], distance[:split_idx,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
+        ax.fill(time[:,0], time[:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
+        ax.fill(distance[:,0], distance[:,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
         plt.legend(loc=4)
         plt.show()

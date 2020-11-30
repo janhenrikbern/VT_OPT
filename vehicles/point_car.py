@@ -65,7 +65,8 @@ class PointCar:
             self.travel_time += time
             self.v = self.adjusted_speed(dist, time)
         
-        self.theta = self.adjusted_heading(coor)
+        # self.theta = self.sadjusted_heading(coor)
+        self.theta = self.heading(coor)
         self.location = coor
 
     def can_reach_location(self, coor):
@@ -110,8 +111,10 @@ class PointCar:
         dist = hypotenuse(dx, dy)
         # steering negatively affects the speed. Need to slow down to turn.
         steering_correction = 1.0 - (d_theta / (self.max_turning_rate * dist))
-        v_gain = self.v + (dist / max(self.v, self.max_a)) * self.max_a * steering_correction
-        v_adj = (steering_correction * self.v + min(v_gain, steering_correction * self.max_v)) / 2.0
+        max_a = self.max_a * steering_correction
+        max_v = self.max_v * steering_correction**2
+        v_gain = self.v + (dist / max(self.v, max_a)) * max_a
+        v_adj = (steering_correction * self.v + min(v_gain, max_v)) / 2.0
         
         # print(f"acceleration: {(v_adj - self.v) / (dist / v_adj)}")
         return dist / v_adj
