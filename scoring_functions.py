@@ -22,7 +22,7 @@ def distance_score(node, x, y):
 @steering_constraint
 def time_score(node, x, y):
     dt = node.vehicle.get_time((x,y))
-    score = node.val + 1 / (dt + 1.0)
+    score = node.val + 1.0 / (dt + 1.0)
     return score
 
 def centerline_score(node, x, y):
