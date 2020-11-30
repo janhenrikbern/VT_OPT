@@ -39,7 +39,7 @@ class PointCar:
         self.dt = 0.1 #sec
         self.max_v = 28.0 # m/s
         self.max_a = 7.0 # m/s^2
-        self.max_turning_rate = radians(16.0) # rad / m
+        self.max_turning_rate = radians(15.0) # rad / m based on a turning radius of 12 m
 
         # Info metrics:
         self.travel_dist = 0.0
@@ -69,8 +69,8 @@ class PointCar:
         d_theta = abs(d1 - d0)
         dist = hypotenuse(*self.get_distance_components(coor))
         if d_theta / dist > self.max_turning_rate: # max steering angle
-            print(d_theta)
-            print("can't reach target coordinate with current steering constraints")
+            # print(d_theta)
+            # print("can't reach target coordinate with current steering constraints")
             return False
         return True
 
@@ -92,11 +92,11 @@ class PointCar:
         dx, dy = self.get_distance_components(target_coor)
         dist = hypotenuse(dx, dy)
         # steering negatively affects the speed. Need to slow down to turn.
-        steering_correction = 1.0 - sqrt(d_theta / (self.max_turning_rate * dist))
+        steering_correction = 1.0 - (d_theta / (self.max_turning_rate * dist))
         v_gain = self.v + (dist / max(self.v, self.max_a)) * self.max_a * steering_correction
-        v_adj = steering_correction * (self.v + min(v_gain, self.max_v)) / 2.0
+        v_adj = (steering_correction * self.v + min(v_gain, steering_correction * self.max_v)) / 2.0
         
-        print(f"speed: {v_adj - self.v}")
+        # print(f"acceleration: {(v_adj - self.v) / (dist / v_adj)}")
         return dist / v_adj
 
     def get_location_and_heading(self):
