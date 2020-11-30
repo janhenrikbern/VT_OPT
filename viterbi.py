@@ -7,7 +7,8 @@ from path_finding import find_valid_trajectory
 from Node import Node
 from scoring_functions import (
     time_score,
-    distance_score
+    distance_score,
+    centerline_score
 )
 
 
@@ -39,7 +40,7 @@ def init_node(state_idx, starting_position, state):
     dx = n.x - x
     dy = n.y - y
     n.vehicle = PointCar(n.x, n.y)
-    n.vehicle.delta = acos(dx / sqrt(dy**2 + dx**2))
+    n.vehicle.theta = acos(dx / sqrt(dy**2 + dx**2))
     return n
 
 
@@ -84,12 +85,12 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
     cur = best_node
     n_nodes = 0 
     while cur is not None:
-        path.append((cur.x, cur.y))
+        path.append(cur.vehicle.location)
         cur = cur.prev
         n_nodes += 1 
     print(f"Results of {scoring_fn.__name__} optimization: {best_node}")
     
-    return get_full_path(starting_position, *list(reversed(path)))
+    return get_full_path(*reversed(path))
 
 
 def get_full_path(*coors):
@@ -106,29 +107,48 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots()
     ax.imshow(track)
+    plt.xlabel("Meters")
+    plt.ylabel("Meters")
     baseline_trellis = find_valid_trajectory(car, track, states=1)
-    baseline = additive_viterbi(baseline_trellis, starting_position, distance_score)
+    baseline = additive_viterbi(baseline_trellis, starting_position, centerline_score)
     ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
 
-    trellis = find_valid_trajectory(car, track, nodes=399, states=20)
+    n_loops = 2
+    trellis = find_valid_trajectory(car, track, loops=n_loops, states=20)
+    split_idx = (len(trellis) // n_loops) + 1 if n_loops > 1 else 0
+
     time = additive_viterbi(trellis, starting_position, time_score)
-    ax.fill(time[201:,0], time[201:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
+    ax.fill(time[split_idx:,0], time[split_idx:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
 
     distance = additive_viterbi(trellis, starting_position, distance_score)
-    ax.fill(distance[201:,0], distance[201:,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
-    # plt.legend()
+    ax.fill(distance[:split_idx,0], distance[:split_idx,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
+    plt.legend(loc=4)
     plt.show()
 
-    ## Trajectory Video plot
+    ## Trellis Video plot
     # fig = plt.figure()
-    # for x, y in best_path:
+    # for states in trellis:
+    #     plt.imshow(track)
+    #     plt.xlabel("Meter")
+    #     plt.ylabel("Meter")
+    #     for x, y in states:
+    #         plt.scatter(x, y)
+            
+    #     plt.pause(0.1)
+    #     fig.clear()
+    # plt.pause(.5)
+    # plt.close()
+
+    # Trajectory Video plot
+    # fig = plt.figure()
+    # for x, y in time:
     #     plt.imshow(track)
     #     # plt.title("Baseline: Centerline Trajectory")
     #     plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
-    #     plt.xlabel("Unit distance")
-    #     plt.ylabel("Unit distance")
+    #     plt.xlabel("Meters")
+    #     plt.ylabel("Meters")
     #     plt.scatter(x, y)
     #     plt.pause(0.1)
     #     fig.clear()
-    # plt.pause(1.0)
+    # plt.pause(0.5)
     # plt.close()
