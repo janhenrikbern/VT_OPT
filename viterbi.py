@@ -9,8 +9,6 @@ from scoring_functions import (
     time_score,
     distance_score
 )
-# SCORING_FN = distance_score
-SCORING_FN = time_score
 
 
 def score(scoring_fn, nodes, state):
@@ -33,20 +31,20 @@ def score(scoring_fn, nodes, state):
     cur.update(state, max_val)
     return cur
 
-def init_node(state_idx, c0, c1):
+def init_node(state_idx, starting_position, state):
     n = Node()
     n.state_idx = state_idx
-    n.x, n.y = c0
-    x, y = c1
-    dx = x - n.x
-    dy = y - n.y
+    n.x, n.y = state
+    x, y = starting_position
+    dx = n.x - x
+    dy = n.y - y
     n.vehicle = PointCar(n.x, n.y)
     n.vehicle.delta = acos(dx / sqrt(dy**2 + dx**2))
     return n
 
 
 
-def additive_viterbi(trellis, scoring_fn=SCORING_FN):
+def additive_viterbi(trellis, starting_position, scoring_fn):
     """
     Implementation inspired by: 
 
@@ -66,7 +64,7 @@ def additive_viterbi(trellis, scoring_fn=SCORING_FN):
     for i, col in enumerate(trellis):
         for j, state in enumerate(col):
             if i == 0:
-                n = init_node(j, state, trellis[i+1][j])
+                n = init_node(j, starting_position, state)
                 nodes.append(n)
                 tmp.append(n)
                 continue
@@ -88,10 +86,14 @@ def additive_viterbi(trellis, scoring_fn=SCORING_FN):
     while cur is not None:
         path.append((cur.x, cur.y))
         cur = cur.prev
-        n_nodes +=1 
-    print(f"Number of nodes in path: {n_nodes}")
+        n_nodes += 1 
+    print(f"Results of {scoring_fn.__name__} optimization: {best_node}")
     
-    return np.array(path).reshape(-1, 2)
+    return get_full_path(starting_position, *list(reversed(path)))
+
+
+def get_full_path(*coors):
+    return np.array(coors).reshape(-1, 2)
 
 
 if __name__ == "__main__":
@@ -99,20 +101,21 @@ if __name__ == "__main__":
     track = load_track(IMG_PATH)
 
     # Set to a valid point in trajectory
-    car = PointCar(150, 200)
-
-    baseline_trellis = find_valid_trajectory(car, track, states=1)
-    baseline = additive_viterbi(baseline_trellis, distance_score)
-
-    trellis = find_valid_trajectory(car, track)
-    time = additive_viterbi(trellis, time_score)
-    distance = additive_viterbi(trellis, distance_score)
+    starting_position = (150., 200.)
+    car = PointCar(*starting_position)
 
     fig, ax = plt.subplots()
     ax.imshow(track)
+    baseline_trellis = find_valid_trajectory(car, track, states=1)
+    baseline = additive_viterbi(baseline_trellis, starting_position, distance_score)
     ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
-    ax.fill(time[:,0], time[:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
-    ax.fill(distance[:,0], distance[:,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
+
+    trellis = find_valid_trajectory(car, track, nodes=399, states=20)
+    time = additive_viterbi(trellis, starting_position, time_score)
+    ax.fill(time[201:,0], time[201:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
+
+    distance = additive_viterbi(trellis, starting_position, distance_score)
+    ax.fill(distance[201:,0], distance[201:,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
     # plt.legend()
     plt.show()
 
