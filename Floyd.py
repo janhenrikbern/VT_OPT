@@ -11,7 +11,6 @@ import datetime
 def build_matrix(trellis):
     visible = len(trellis)
     width = trellis[0].shape[0]
-
     trellis = np.array(trellis)
     nodes = trellis.reshape(visible*width, 2)
     matrix = np.ones([nodes.shape[0], nodes.shape[0]]) * 100000
@@ -23,8 +22,6 @@ def build_matrix(trellis):
                 matrix[i][j] = dx
     return matrix
 
-
-    # Floyd-Warshall算法的伪代码描述如下：
     # 1 let dist be a |V| × |V| array of minimum distances initialized to ∞ (infinity)
     # 2 for each vertex v
     # 3    dist[v][v] ← 0
@@ -38,14 +35,20 @@ def build_matrix(trellis):
     # 11         end if
 
 def floyd(matrix):
+    paramter_matrix = np.ones(matrix.shape)
+    for i, item in enumerate(paramter_matrix):
+        for j, _ in enumerate(item):
+            paramter_matrix[i][j] = j
+
     length = matrix.shape[0]
     for k in range(0, length):
         for i in range(0, length):
             for j in range(0, length):
                 if matrix[i][j] > matrix[i][k] + matrix[k][j]:
                     matrix[i][j] = matrix[i][k] + matrix[k][j]
+                    paramter_matrix[i][j] = k
 
-    return matrix
+    return matrix, paramter_matrix
 
 
 if __name__ == "__main__":
@@ -57,23 +60,35 @@ if __name__ == "__main__":
     car = PointCar(150, 200)
     trellis = find_valid_trajectory(car, track)
     matrix = build_matrix(trellis)
-    floyd_m = floyd(matrix)
+    floyd_m, p_m = floyd(matrix)
     for item in floyd_m[0:10, -1]:
         print(item)
-
     b = datetime.datetime.now()
     print(b-a)
 
-    # best_path = []
-    # fig = plt.figure()
-    # for x, y in best_path:
-    #     plt.imshow(track)
-    #     # plt.title("Baseline: Centerline Trajectory")
-    #     plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
-    #     plt.xlabel("Unit distance")
-    #     plt.ylabel("Unit distance")
-    #     plt.scatter(x, y)
-    #     plt.pause(0.1)
-    #     fig.clear()
-    # plt.pause(1.0)
-    # plt.close()
+    best_path_index = []
+    width = 10
+    start_point, end_point = np.unravel_index(np.argmin(floyd_m[0:width, -width:], axis=None), floyd_m[0:width, -width:].shape)
+    finish_point = p_m[start_point, floyd_m.shape[0]-width+end_point]
+    pos = floyd_m.shape[0]-width+end_point
+    while pos > width:
+        best_path_index.append(pos)
+        pos = int(p_m[start_point, pos])
+        print(pos)
+
+    best_path = [trellis[0][start_point]]
+    for item in best_path_index:
+        best_path.append(trellis[item//width][item%width])
+
+    fig = plt.figure()
+    for x, y in best_path:
+        plt.imshow(track)
+        # plt.title("Baseline: Centerline Trajectory")
+        plt.title("Viterbi Trajectory Optimization w/ distance specific energy function")
+        plt.xlabel("Unit distance")
+        plt.ylabel("Unit distance")
+        plt.scatter(x, y)
+        plt.pause(0.1)
+        fig.clear()
+    plt.pause(1.0)
+    plt.close()
