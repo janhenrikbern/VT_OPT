@@ -1,4 +1,7 @@
 
+from typing import Tuple, Type
+
+
 class Node:
     def __init__(self) -> None:
         self.prev = None
@@ -19,7 +22,7 @@ class Node:
         self.prev = node
         return self
 
-    def update(self, state, score) -> None:
+    def update(self, state: Tuple[float], score: float) -> None:
         self.steps += 1
         self.x, self.y = state
         self.val = score

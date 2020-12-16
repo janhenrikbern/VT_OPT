@@ -1,3 +1,4 @@
+from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 from math import (
@@ -13,7 +14,7 @@ from .utils import (
 )
 
 class PointCar:
-    def __init__(self, *starting_coordinates):
+    def __init__(self, starting_coordinates: Tuple[float]) -> None:
         """
         Simulates point model with steering inputs of acceleration (a) and steering_angle.
         Dynamics based on point model as described in:
@@ -33,7 +34,7 @@ class PointCar:
 
         # vehicle state
         self.v = 0.0
-        self.location = list(starting_coordinates)
+        self.location = starting_coordinates
         self.dt = 0.1 #sec
 
         # vehicle constraints
