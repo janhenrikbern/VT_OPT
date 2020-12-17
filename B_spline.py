@@ -74,5 +74,5 @@ if __name__ == "__main__":
     # plt.title("Baseline: Centerline Trajectory")
     plt.xlabel("Unit distance")
     plt.ylabel("Unit distance")
-    plt.scatter(x_i, y_i)
+    plt.fill(x_i, y_i, facecolor="none", edgecolor='blue', linestyle="-")
     plt.show()
