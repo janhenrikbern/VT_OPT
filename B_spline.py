@@ -7,6 +7,7 @@ from path_finding import find_valid_trajectory
 from distance_viterbi import dynamics
 import datetime
 import scipy.interpolate as si
+import metrics
 
 
 def return_better(candidates, idx, left, right, displacement):
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     y_i = si.splev(ipl_t, y_list)
 
     print(metrics.summed_distance(x_i, y_i))
-    
+
     fig = plt.figure()
     plt.imshow(track)
     # plt.title("Baseline: Centerline Trajectory")
