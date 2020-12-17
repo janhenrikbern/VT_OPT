@@ -9,6 +9,21 @@ import datetime
 import scipy.interpolate as si
 
 
+def return_better(candidates, idx, left, right, displacement):
+    id_list = [i for i in range(len(candidates)) if abs(i-idx) <= 1]
+    score = []
+    for i in range(len(id_list)):
+        v_left = np.array([left[0]-candidates[id_list[i]][0], left[1]-candidates[id_list[i]][1]])
+        norm_left = v_left/np.linalg.norm(v_left)
+        v_right = np.array([right[0]-candidates[id_list[i]][0], right[1]-candidates[id_list[i]][1]])
+        norm_right = v_right/np.linalg.norm(v_right)
+        score.append(np.dot(norm_left, norm_right))
+
+    displacement_new = id_list[np.argmin(score)] - idx
+
+    return idx + displacement, displacement_new
+
+
 if __name__ == "__main__":
     IMG_PATH = "./tracks/loop.png"
     track = load_track(IMG_PATH)
@@ -18,8 +33,20 @@ if __name__ == "__main__":
     car = PointCar(150, 200)
     trellis = find_valid_trajectory(car, track)
 
-    x = np.array([trellis[i][int(np.random.rand(1)*10)][0] for i in range(len(trellis))])
-    y = np.array([trellis[i][int(np.random.rand(1)*10)][1] for i in range(len(trellis))])
+    visible = len(trellis)
+    iter_num = 1000
+    cont_p_idx = [round(trellis[1].shape[0]/2)] * len(trellis)
+    displacement = [0] * len(trellis)
+    for i in range(iter_num):
+        for j in range(visible):
+            left_idx = (j-1)%(visible-1)
+            right_idx = (j+1)%(visible-1)
+            left_p = trellis[left_idx][cont_p_idx[left_idx]]
+            right_p = trellis[right_idx][cont_p_idx[right_idx]]
+            cont_p_idx[j], displacement[j] = return_better(trellis[j], cont_p_idx[j], left_p, right_p, displacement[j])
+
+    x = np.array([trellis[i][cont_p_idx[i]][0] for i in range(len(trellis))])
+    y = np.array([trellis[i][cont_p_idx[i]][1] for i in range(len(trellis))])
 
     t = range(len(x))
     ipl_t = np.linspace(0.0, len(x) - 1, 100)
@@ -39,9 +66,9 @@ if __name__ == "__main__":
     y_i = si.splev(ipl_t, y_list)
 
     fig = plt.figure()
-    plt.plot(x, y, '-og')
-    plt.plot(x_i, y_i, 'r')
-    plt.xlim([min(x) - 0.3, max(x) + 0.3])
-    plt.ylim([min(y) - 0.3, max(y) + 0.3])
-    plt.title('Splined f(x(t), y(t))')
+    plt.imshow(track)
+    # plt.title("Baseline: Centerline Trajectory")
+    plt.xlabel("Unit distance")
+    plt.ylabel("Unit distance")
+    plt.scatter(x_i, y_i)
     plt.show()
