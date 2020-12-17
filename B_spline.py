@@ -20,8 +20,9 @@ def return_better(candidates, idx, left, right, displacement):
         score.append(np.dot(norm_left, norm_right))
 
     displacement_new = id_list[np.argmin(score)] - idx
-
-    return idx + displacement, displacement_new
+    if not 0 <= id_list[np.argmin(score)] + displacement <= 9:
+        displacement = 0
+    return id_list[np.argmin(score)] + displacement, displacement_new
 
 
 if __name__ == "__main__":
