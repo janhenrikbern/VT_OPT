@@ -66,6 +66,8 @@ if __name__ == "__main__":
     x_i = si.splev(ipl_t, x_list)
     y_i = si.splev(ipl_t, y_list)
 
+    print(metrics.summed_distance(x_i, y_i))
+    
     fig = plt.figure()
     plt.imshow(track)
     # plt.title("Baseline: Centerline Trajectory")
