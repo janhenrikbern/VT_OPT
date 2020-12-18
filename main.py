@@ -42,11 +42,11 @@ def print_stats(path):
 
     
 def run_viterbi(parameterized_track):
-    return viterbi.additive_viterbi(parameterized_track)
+    return viterbi.additive_viterbi(parameterized_track, alpha=1.0, beta=0.0)
 
 
 def run_shooting(parameterized_track):
-    return optimal.run(parameterized_track, 1.0, 0.0)
+    return optimal.run(parameterized_track, alpha=1.0, beta=0.0)
 
 
 def min_distance():

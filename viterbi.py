@@ -24,11 +24,19 @@ def segment_score(prev, cur, nxt, alpha, beta):
     return beta * cos_angle * (v1_mag + v2_mag) - alpha * (v1_mag + v2_mag)
 
 
-def score(nodes, state, alpha=1.0, beta=0.0):
+def time_score(node, nxt):
+    dt = node.vehicle.get_time(nxt)
+    score = node.val - dt
+    return score
+
+
+def score(nodes, state, alpha, beta):
     best_node = None
     max_val = -np.Infinity
     for prev in nodes:
         val = prev.val + segment_score(prev.prev.get_location(), prev.get_location(), state, alpha, beta)
+        # val = time_score(prev, state)
+        # print(val)
         if val == None:
             continue
         elif val > max_val:
@@ -54,7 +62,7 @@ def init_node(state_idx, cur, nxt):
 
 
 
-def additive_viterbi(trellis):
+def additive_viterbi(trellis, alpha=1.0, beta=0.0):
     """
     Implementation inspired by: 
 
@@ -81,7 +89,7 @@ def additive_viterbi(trellis):
                 tmp.append(n)
                 continue
     
-            tmp[j] = score(nodes, state)
+            tmp[j] = score(nodes, state, alpha, beta)
 
         nodes, tmp = tmp, nodes
     
