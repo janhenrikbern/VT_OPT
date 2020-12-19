@@ -29,17 +29,24 @@ def time_score(node, nxt):
     score = node.val - dt
     return score
 
+def distance_score(node, nxt):
+    dx, dy = node.vehicle.get_distance_components(nxt)
+    dist = sqrt(dx**2 + dy**2)
+    score = node.val - dist
+    return score
+
 
 def score(nodes, state, alpha, beta):
     best_node = None
     max_val = -np.Infinity
     for prev in nodes:
-        val = prev.val + segment_score(prev.prev.get_location(), prev.get_location(), state, alpha, beta)
-        # val = time_score(prev, state)
-        # print(val)
-        if val == None:
+        if prev.vehicle.can_reach_location(state) is False:
             continue
-        elif val > max_val:
+        # val = prev.val + segment_score(prev.prev.get_location(), prev.get_location(), state, alpha, beta)
+        # val = time_score(prev, state)
+        val = distance_score(prev, state)
+        # print(val)
+        if val > max_val:
             best_node = prev
             max_val = val
     if best_node == None:
@@ -57,7 +64,8 @@ def init_node(state_idx, cur, nxt):
     n.state_idx = state_idx
     n.x, n.y = cur
     n.vehicle = PointCar(n.x, n.y)
-    n.vehicle.theta = n.vehicle.heading(nxt)
+    dx, dy = n.vehicle.get_distance_components(nxt)
+    n.vehicle.theta = acos(dx/sqrt(dx**2 + dy**2))
     return n
 
 
@@ -72,6 +80,10 @@ def additive_viterbi(trellis, alpha=1.0, beta=0.0):
     in Automation and Robotics (MMAR) (pp. 788–793). 
     IEEE. https://doi.org/10.1109/MMAR.2014.6957456
 
+    Instead of using two arrays to keep track of scores and transitions,
+    we introduced a node object that holds all kinds of information and links
+    to its predecessor. 
+
     Arguments:
         trellis: n x m x 2 np.array where n is the number of segments that combined are a full loop of the track
     """
@@ -83,7 +95,7 @@ def additive_viterbi(trellis, alpha=1.0, beta=0.0):
         for j, state in enumerate(col):
             if i == 0:
                 prev = init_node(j, trellis[-1][j], state)
-                n = init_node(j, state, trellis[i][j])
+                n = init_node(j, state, trellis[i+1][j])
                 n.prev = prev
                 nodes.append(n)
                 tmp.append(n)
