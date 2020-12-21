@@ -19,6 +19,9 @@ class Node:
         self.prev = node
         return self
 
+    def get_location(self):
+        return self.x, self.y
+
     def update(self, state, score) -> None:
         self.steps += 1
         self.x, self.y = state

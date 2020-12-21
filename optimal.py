@@ -102,11 +102,12 @@ def run(parameterized_track, alpha, beta):
     return path
 
 def run_gridsearch(parameterized_track, n_segments=10):
-    for i in np.linspace(0.0, 1.0, num = n_segments+1, endpoint=True , dtype=float):
+    for i in np.linspace(0.3, 0.7, num = n_segments+1, endpoint=True , dtype=float):
+        print(i)
         path = run(parameterized_track, alpha=1.0 - i, beta=i)
-        # x = [i[0] for i in path]
-        # y = [i[1] for i in path]
-        # print(metrics.summed_distance(x, y))
+        x = [i[0] for i in path]
+        y = [i[1] for i in path]
+        print(metrics.summed_distance(x, y))
 
         car = PointCar(*path[0])
         car.theta = car.heading(path[1])
@@ -123,17 +124,19 @@ if __name__ == "__main__":
     STATES = 30 # a waypoint for every 0.5 of the track width
     trellis = find_valid_trajectory(car, track, states=STATES)
 
-    path = run(trellis, alpha=.9, beta=0.1)
-    x = [i[0] for i in path]
-    y = [i[1] for i in path]
-    print(metrics.summed_distance(x, y))
+    run_gridsearch(trellis, n_segments=10)
 
-    car = PointCar(*path[0])
-    car.theta = car.heading(path[1])
-    for coor in path[1:]:
-        car.update(coor, is_coor=True)
+    # path = run(trellis, alpha=.9, beta=0.1)
+    # x = [i[0] for i in path]
+    # y = [i[1] for i in path]
+    # print(metrics.summed_distance(x, y))
 
-    print(car.travel_time)
+    # car = PointCar(*path[0])
+    # car.theta = car.heading(path[1])
+    # for coor in path[1:]:
+    #     car.update(coor, is_coor=True)
+
+    # print(car.travel_time)
 
 
     if a.plot:

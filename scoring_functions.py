@@ -30,3 +30,4 @@ def centerline_score(node, x, y):
     dist = sqrt(dx**2 + dy**2)
     score = node.val + 1.0 / (dist + 1.0)
     return score
+

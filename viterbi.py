@@ -5,47 +5,72 @@ from track import load_track
 from vehicles import PointCar
 from path_finding import find_valid_trajectory
 from Node import Node
-from scoring_functions import (
-    time_score,
-    distance_score,
-    centerline_score
-)
+
+def distance(x1: np.ndarray, x2: np.ndarray) -> float:
+    return np.sqrt(np.sum((x1 - x2)**2))
 
 
-def score(scoring_fn, nodes, state):
-    x, y = state
+def segment_score(prev, cur, nxt, alpha, beta):
+    prev = np.array(prev)
+    cur = np.array(cur)
+    nxt = np.array(nxt)
+
+    v1 = cur - prev
+    v2 = nxt - cur
+    v1_mag = distance(cur, prev)
+    v2_mag = distance(nxt, cur)
+    cos_angle  = np.dot(v1, v2) / (v1_mag * v2_mag)
+
+    return beta * cos_angle * (v1_mag + v2_mag) - alpha * (v1_mag + v2_mag)
+
+
+def time_score(node, nxt):
+    dt = node.vehicle.get_time(nxt)
+    score = node.val - dt
+    return score
+
+def distance_score(node, nxt):
+    dx, dy = node.vehicle.get_distance_components(nxt)
+    dist = sqrt(dx**2 + dy**2)
+    score = node.val - dist
+    return score
+
+
+def score(nodes, state, alpha, beta):
     best_node = None
-    max_val = -1
+    max_val = -np.Infinity
     for prev in nodes:
-            val = scoring_fn(prev, x, y)
-            if val == None:
-                continue
-            elif val > max_val:
-                best_node = prev
-                max_val = val
-    if max_val < 0:
+        if prev.vehicle.can_reach_location(state) is False:
+            continue
+        # val = prev.val + segment_score(prev.prev.get_location(), prev.get_location(), state, alpha, beta)
+        # val = time_score(prev, state)
+        val = distance_score(prev, state)
+        # print(val)
+        if val > max_val:
+            best_node = prev
+            max_val = val
+    if best_node == None:
         print("Couldn't find a valid node to proceed to.")
         exit()
+
     # set best node
     cur = Node()
     cur.inherit(best_node)
     cur.update(state, max_val)
     return cur
 
-def init_node(state_idx, starting_position, state):
+def init_node(state_idx, cur, nxt):
     n = Node()
     n.state_idx = state_idx
-    n.x, n.y = state
-    x, y = starting_position
-    dx = n.x - x
-    dy = n.y - y
+    n.x, n.y = cur
     n.vehicle = PointCar(n.x, n.y)
-    n.vehicle.theta = acos(dx / sqrt(dy**2 + dx**2))
+    dx, dy = n.vehicle.get_distance_components(nxt)
+    n.vehicle.theta = acos(dx/sqrt(dx**2 + dy**2))
     return n
 
 
 
-def additive_viterbi(trellis, starting_position, scoring_fn):
+def additive_viterbi(trellis, alpha=1.0, beta=0.0):
     """
     Implementation inspired by: 
 
@@ -54,6 +79,10 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
     In 2014 19th International Conference on Methods and Models 
     in Automation and Robotics (MMAR) (pp. 788–793). 
     IEEE. https://doi.org/10.1109/MMAR.2014.6957456
+
+    Instead of using two arrays to keep track of scores and transitions,
+    we introduced a node object that holds all kinds of information and links
+    to its predecessor. 
 
     Arguments:
         trellis: n x m x 2 np.array where n is the number of segments that combined are a full loop of the track
@@ -65,21 +94,19 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
     for i, col in enumerate(trellis):
         for j, state in enumerate(col):
             if i == 0:
-                n = init_node(j, starting_position, state)
+                prev = init_node(j, trellis[-1][j], state)
+                n = init_node(j, state, trellis[i+1][j])
+                n.prev = prev
                 nodes.append(n)
                 tmp.append(n)
                 continue
     
-            tmp[j] = score(scoring_fn, nodes, state)
+            tmp[j] = score(nodes, state, alpha, beta)
 
         nodes, tmp = tmp, nodes
     
-    # for n in nodes:
-    #     print(n)
-    
     # backward pass
     best_node = min(nodes, key=lambda n: n.val)
-    print(best_node)
     
     path = []
     cur = best_node
@@ -88,13 +115,8 @@ def additive_viterbi(trellis, starting_position, scoring_fn):
         path.append(cur.vehicle.location)
         cur = cur.prev
         n_nodes += 1 
-    print(f"Results of {scoring_fn.__name__} optimization: {best_node}")
     
-    return get_full_path(*reversed(path))
-
-
-def get_full_path(*coors):
-    return np.array(coors).reshape(-1, 2)
+    return np.array(list(reversed(path)))
 
 
 if __name__ == "__main__":
@@ -109,19 +131,19 @@ if __name__ == "__main__":
     ax.imshow(track)
     plt.xlabel("Meters")
     plt.ylabel("Meters")
-    baseline_trellis = find_valid_trajectory(car, track, states=1)
-    baseline = additive_viterbi(baseline_trellis, starting_position, centerline_score)
-    ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
+    # baseline_trellis = find_valid_trajectory(car, track, states=1)
+    # baseline = additive_viterbi(baseline_trellis, starting_position, centerline_score)
+    # ax.fill(baseline[:,0], baseline[:,1], facecolor='none', edgecolor='black', linestyle="-.", label="Centerline")
 
     n_loops = 2
-    trellis = find_valid_trajectory(car, track, loops=n_loops, states=20)
+    trellis = find_valid_trajectory(car, track, loops=n_loops, states=30)
     split_idx = (len(trellis) // n_loops) + 1 if n_loops > 1 else 0
 
-    time = additive_viterbi(trellis, starting_position, time_score)
+    time = additive_viterbi(trellis)
     ax.fill(time[split_idx:,0], time[split_idx:,1], facecolor='none', edgecolor='red', linestyle="-", label="Time Objective")
 
-    distance = additive_viterbi(trellis, starting_position, distance_score)
-    ax.fill(distance[:split_idx,0], distance[:split_idx,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
+    # distance = additive_viterbi(trellis, starting_position, distance_score)
+    # ax.fill(distance[:split_idx,0], distance[:split_idx,1], facecolor='none', edgecolor='blue', linestyle="-", label="Distance Objective")
     plt.legend(loc=4)
     plt.show()
 
